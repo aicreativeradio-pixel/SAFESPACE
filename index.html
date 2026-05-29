@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafeSpace - Industrial Safety & Hazard Tracking Portal</title>
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="SafeSpace is a premium industrial safety reporting portal for engineers and administrators to report hazards, log workplace injuries, and analyze risk statistics.">
+  <meta name="keywords" content="safety dashboard, hazard reporting, industrial safety, OSHA reporting, engineer safety log, near miss tracking">
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="style.css">
+  <!-- FontAwesome for Premium Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- Fullscreen Login Gate Section -->
+  <div class="login-gate-overlay" id="login-gate">
+    <div class="login-card">
+      <div class="login-brand">
+        <img src="logo.png" alt="SafeSpace Logo" style="width: 52px; height: 52px; border-radius: 12px; margin-bottom: 8px;">
+        <h2>SafeSpace</h2>
+        <p>Industrial Safety & Operations Portal</p>
+      </div>
+      
+      <form id="login-form">
+        <div class="form-group">
+          <label for="login-email">Corporate Email Address</label>
+          <input type="email" id="login-email" class="form-control" placeholder="E.g., engineer@safespace.com" required>
+        </div>
+        <div class="form-group">
+          <label for="login-password">Portal Passcode</label>
+          <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; height: 45px; margin-top: 8px;">
+          <i class="fa-solid fa-right-to-bracket"></i> Sign In to Portal
+        </button>
+      </form>
+
+      <div class="login-presets">
+        <h4>Sign In Presets (Click to autofill)</h4>
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+          <button class="btn btn-outline" id="preset-engineer" style="justify-content: flex-start; padding: 10px 14px; font-size: 13px;">
+            <i class="fa-solid fa-user-gear" style="color: var(--primary);"></i>
+            <div style="text-align: left; margin-left: 8px;">
+              <strong style="display: block; font-size:12px;">Alex Carter (Site Engineer)</strong>
+              <span style="font-size: 11px; color: var(--text-muted);">engineer@safespace.com</span>
+            </div>
+          </button>
+          <button class="btn btn-outline" id="preset-admin" style="justify-content: flex-start; padding: 10px 14px; font-size: 13px;">
+            <i class="fa-solid fa-shield-halved" style="color: var(--danger);"></i>
+            <div style="text-align: left; margin-left: 8px;">
+              <strong style="display: block; font-size:12px;">Supervisor (Company Admin)</strong>
+              <span style="font-size: 11px; color: var(--text-muted);">admin@safespace.com</span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar Navigation (Hidden until authenticated) -->
+  <aside class="sidebar" id="app-sidebar" style="display: none;">
+    <div class="sidebar-brand" style="gap: 8px;">
+      <img src="logo.png" alt="SafeSpace Logo" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border-color);">
+      <span class="brand-name">SafeSpace</span>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <div class="nav-item active" data-target="dashboard" id="nav-dashboard">
+        <i class="fa-solid fa-chart-line"></i>
+        <span>Dashboard</span>
+      </div>
+      <div class="nav-item" data-target="report-hazard" id="nav-report-hazard">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>Report Hazard / Near Miss</span>
+      </div>
+      <div class="nav-item" data-target="report-injury" id="nav-report-injury">
+        <i class="fa-solid fa-user-injured"></i>
+        <span>Report Injury</span>
+      </div>
+      <div class="nav-item" data-target="tool-safety" id="nav-tool-safety">
+        <i class="fa-solid fa-screwdriver-wrench"></i>
+        <span>Tool Safety & LOTO</span>
+      </div>
+      <div class="nav-item" data-target="media-gallery" id="nav-media-gallery">
+        <i class="fa-solid fa-images"></i>
+        <span>Media Gallery</span>
+      </div>
+      <div class="nav-item" data-target="admin-logs" id="nav-admin-logs">
+        <i class="fa-solid fa-list-check"></i>
+        <span>Incident Logs</span>
+      </div>
+      <div class="nav-item" data-target="analytics" id="nav-analytics">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>Safety Analytics</span>
+      </div>
+      <div class="nav-item" data-target="data-hub" id="nav-data-hub">
+        <i class="fa-solid fa-database"></i>
+        <span>Company Data Hub</span>
+      </div>
+      
+      <!-- Logout Tab Button -->
+      <div class="nav-item" id="nav-logout" style="margin-top: auto; color: var(--danger);">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span>Sign Out</span>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <div class="user-avatar" id="sidebar-user-avatar">EN</div>
+        <div class="user-info">
+          <span class="user-name" id="sidebar-user-name">Alex Carter</span>
+          <span class="user-role" id="sidebar-user-role">Site Engineer</span>
+        </div>
+      </div>
+      <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle Dark/Light Theme">
+        <i class="fa-solid fa-moon" id="theme-icon"></i>
+        <span id="theme-text">Light Mode</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Wrapper (Hidden until authenticated) -->
+  <div class="main-wrapper" id="app-main-wrapper" style="display: none;">
+    <header>
+      <div class="header-title">
+        <h2 id="page-header-title">Safety Dashboard</h2>
+        <span id="page-header-subtitle">Real-time site indicators and quick reports</span>
+      </div>
+      
+      <div class="header-actions">
+        <div class="alert-pill" id="active-hazards-alert" style="display: none;">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span id="alert-text">3 High Risk Hazards Active</span>
+        </div>
+        <div class="user-role-badge badge" id="header-user-badge" style="background-color: var(--primary-glow); color: var(--primary);">
+          Access Level: Site Engineer
+        </div>
+      </div>
+    </header>
+
+    <!-- Main App Container -->
+    <main class="app-container">
+      
+      <!-- 1. DASHBOARD VIEW -->
+      <section id="view-dashboard" class="page-view active">
+        <div class="welcome-banner">
+          <div class="welcome-text">
+            <h1 id="dashboard-welcome-heading">Welcome back, Alex</h1>
+            <p>Ensure safety compliance on site today. You can report hazards, near misses, or injuries instantly using the shortcuts.</p>
+          </div>
+          <div class="quick-actions">
+            <button class="btn btn-danger" onclick="navigateTo('report-hazard')">
+              <i class="fa-solid fa-triangle-exclamation"></i> Quick Hazard / Near Miss
+            </button>
+            <button class="btn btn-primary" onclick="navigateTo('report-injury')">
+              <i class="fa-solid fa-user-injured"></i> Quick Injury Report
+            </button>
+          </div>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="metrics-grid">
+          <div class="metric-card" onclick="navigateTo('admin-logs')">
+            <div class="metric-info">
+              <span class="metric-label">Active Hazards & Near Misses</span>
+              <span class="metric-value" id="metric-active-hazards">0</span>
+              <span class="metric-trend trend-down" id="hazard-trend">
+                <i class="fa-solid fa-arrow-down"></i> -15% vs last week
+              </span>
+            </div>
+            <div class="metric-icon orange">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+          </div>
+          
+          <div class="metric-card" onclick="navigateTo('admin-logs')">
+            <div class="metric-info">
+              <span class="metric-label">Injuries logged (MTD)</span>
+              <span class="metric-value" id="metric-open-injuries">0</span>
+              <span class="metric-trend trend-down" id="injury-trend">
+                <i class="fa-solid fa-arrow-down"></i> -50% vs last month
+              </span>
+            </div>
+            <div class="metric-icon red">
+              <i class="fa-solid fa-user-injured"></i>
+            </div>
+          </div>
+
+          <div class="metric-card" onclick="navigateTo('tool-safety')">
+            <div class="metric-info">
+              <span class="metric-label">Locked Out Tools (LOTO)</span>
+              <span class="metric-value" id="metric-loto-tools">0</span>
+              <span class="metric-trend trend-up" id="loto-trend" style="color: var(--danger);">
+                <i class="fa-solid fa-lock"></i> Active LOTO tags
+              </span>
+            </div>
+            <div class="metric-icon red" style="background-color: rgba(239, 68, 68, 0.1); color: var(--danger);">
+              <i class="fa-solid fa-lock"></i>
+            </div>
+          </div>
+
+          <div class="metric-card" onclick="navigateTo('admin-logs')">
+            <div class="metric-info">
+              <span class="metric-label">Resolved Incidents</span>
+              <span class="metric-value" id="metric-resolved">0</span>
+              <span class="metric-trend trend-up">
+                <i class="fa-solid fa-arrow-up"></i> +8 today
+              </span>
+            </div>
+            <div class="metric-icon blue">
+              <i class="fa-solid fa-check-double"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard Charts & Feed Grid -->
+        <div class="dashboard-layout">
+          <!-- Charts Section -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title"><i class="fa-solid fa-chart-area"></i> Monthly Incident & Near Miss Trends</h3>
+                <p class="card-subtitle">Aggregated logs for safety indicators</p>
+              </div>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="dashboardTrendChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Recent Activity Feed -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title"><i class="fa-solid fa-clock"></i> Recent Activity Feed</h3>
+                <p class="card-subtitle">Latest reported incidents and state updates</p>
+              </div>
+            </div>
+            <div class="activity-feed" id="recent-activity-feed">
+              <!-- Dynamically populated by app.js -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. REPORT HAZARD VIEW -->
+      <section id="view-report-hazard" class="page-view">
+        <div class="form-container">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> Log Site Hazard / Near Miss Report</h3>
+                <p class="card-subtitle">Immediately declare risks or near misses to notify safety coordinators</p>
+              </div>
+            </div>
+            
+            <form id="hazard-report-form">
+              <div class="form-group">
+                <label for="hazard-title">Incident Summary / Title *</label>
+                <input type="text" id="hazard-title" class="form-control" placeholder="E.g., Exposed wiring on milling machine, Near miss: forklift backing without spotter" required>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="hazard-location">Exact Location / Sector *</label>
+                  <input type="text" id="hazard-location" class="form-control" placeholder="E.g., Warehouse A - Row 3, Fabrication Shop" required>
+                </div>
+                <div class="form-group">
+                  <label for="hazard-equipment">Equipment Involved (Optional)</label>
+                  <input type="text" id="hazard-equipment" class="form-control" placeholder="E.g., CNC Machine 2, Forklift #14">
+                </div>
+              </div>
+
+              <!-- Visual Severity Picker -->
+              <div class="form-group">
+                <label>Risk Assessment / Severity level *</label>
+                <input type="hidden" id="hazard-severity" value="medium" required>
+                <div class="visual-picker-grid">
+                  <div class="visual-picker-card severity-picker" data-severity="low">
+                    <i class="fa-solid fa-circle-info" style="color: var(--success);"></i>
+                    <span>Low Risk</span>
+                  </div>
+                  <div class="visual-picker-card severity-picker selected" data-severity="medium">
+                    <i class="fa-solid fa-circle-question" style="color: var(--warning);"></i>
+                    <span>Medium Risk</span>
+                  </div>
+                  <div class="visual-picker-card severity-picker" data-severity="high">
+                    <i class="fa-solid fa-circle-exclamation" style="color: var(--danger);"></i>
+                    <span>High Risk</span>
+                  </div>
+                  <div class="visual-picker-card severity-picker" data-severity="critical">
+                    <i class="fa-solid fa-triangle-exclamation" style="color: var(--critical);"></i>
+                    <span>Critical Risk</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Visual Category Picker -->
+              <div class="form-group">
+                <label>Incident Classification / Category *</label>
+                <input type="hidden" id="hazard-category" value="nearmiss" required>
+                <div class="visual-picker-grid" style="grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));">
+                  <div class="visual-picker-card category-picker selected" data-category="nearmiss">
+                    <i class="fa-solid fa-person-falling-burst" style="color: #6366f1;"></i>
+                    <span>Near Miss</span>
+                  </div>
+                  <div class="visual-picker-card category-picker" data-category="physical">
+                    <i class="fa-solid fa-person-falling"></i>
+                    <span>Physical / Slip</span>
+                  </div>
+                  <div class="visual-picker-card category-picker" data-category="electrical">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>Electrical</span>
+                  </div>
+                  <div class="visual-picker-card category-picker" data-category="chemical">
+                    <i class="fa-solid fa-flask"></i>
+                    <span>Chemical / Gas</span>
+                  </div>
+                  <div class="visual-picker-card category-picker" data-category="ergonomic">
+                    <i class="fa-solid fa-chair"></i>
+                    <span>Ergonomic</span>
+                  </div>
+                  <div class="visual-picker-card category-picker" data-category="mechanical">
+                    <i class="fa-solid fa-gears"></i>
+                    <span>Mechanical</span>
+                  </div>
+                  <div class="visual-picker-card category-picker" data-category="other">
+                    <i class="fa-solid fa-box"></i>
+                    <span>Other Risks</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="hazard-description">Event Details & Description *</label>
+                <textarea id="hazard-description" class="form-control" rows="4" placeholder="Detail the event or hazard. What is the immediate threat? Who might be affected? In case of a Near Miss, describe what almost happened." required></textarea>
+              </div>
+
+              <div class="form-group">
+                <label for="hazard-mitigation">Immediate Mitigation Taken / Recommended Actions</label>
+                <textarea id="hazard-mitigation" class="form-control" rows="2" placeholder="E.g., Coned off area, disconnected power switch, placed warning tape"></textarea>
+              </div>
+
+              <!-- Media Attachment Zone (Supporting Real Photos/Videos) -->
+              <div class="form-group">
+                <label>Attach Evidence / Photo or Video Log *</label>
+                <div class="file-upload-zone" id="hazard-file-zone">
+                  <input type="file" id="hazard-file-input" accept="image/*,video/*" style="display: none;">
+                  <i class="fa-solid fa-file-video" style="font-size: 32px; color: var(--text-muted); margin-bottom: 8px;"></i>
+                  <div class="file-upload-text">Click to browse or drop an <span>Image or Video file</span> here</div>
+                  <div class="file-preview-container" id="hazard-file-preview-box" style="display: none; margin-top: 16px; border-radius: 8px; overflow: hidden; max-height: 200px; border: 1px solid var(--border-color); position: relative; background-color: black;">
+                    <!-- Previews injected here -->
+                  </div>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 32px;">
+                <button type="button" class="btn btn-outline" onclick="navigateTo('dashboard')">Cancel</button>
+                <button type="submit" class="btn btn-danger">
+                  <i class="fa-solid fa-paper-plane"></i> File Incident Report
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. REPORT INJURY VIEW -->
+      <section id="view-report-injury" class="page-view">
+        <div class="form-container">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title"><i class="fa-solid fa-user-injured"></i> Log Workplace Injury / Incident</h3>
+                <p class="card-subtitle">Record personnel injuries immediately for safety compliance (OSHA forms)</p>
+              </div>
+            </div>
+
+            <form id="injury-report-form">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="injury-person">Employee Name / ID *</label>
+                  <input type="text" id="injury-person" class="form-control" placeholder="E.g., John Miller (EM-412)" required>
+                </div>
+                <div class="form-group">
+                  <label for="injury-job">Job Title / Department *</label>
+                  <input type="text" id="injury-job" class="form-control" placeholder="E.g., Machinist / Production Dept" required>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="injury-datetime">Incident Date & Time *</label>
+                  <input type="datetime-local" id="injury-datetime" class="form-control" required>
+                </div>
+                <div class="form-group">
+                  <label for="injury-location">Specific Incident Location *</label>
+                  <input type="text" id="injury-location" class="form-control" placeholder="E.g., Packing Bay 4" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Injury Severity / Classification *</label>
+                <input type="hidden" id="injury-severity" value="low" required>
+                <div class="visual-picker-grid">
+                  <div class="visual-picker-card injury-severity-picker selected" data-severity="low">
+                    <i class="fa-solid fa-kit-medical" style="color: var(--success);"></i>
+                    <span>First Aid Only</span>
+                  </div>
+                  <div class="visual-picker-card injury-severity-picker" data-severity="medium">
+                    <i class="fa-solid fa-house-medical" style="color: var(--warning);"></i>
+                    <span>Medical Treatment</span>
+                  </div>
+                  <div class="visual-picker-card injury-severity-picker" data-severity="high">
+                    <i class="fa-solid fa-truck-medical" style="color: var(--danger);"></i>
+                    <span>Lost Time (LTI)</span>
+                  </div>
+                  <div class="visual-picker-card injury-severity-picker" data-severity="critical">
+                    <i class="fa-solid fa-hospital" style="color: var(--critical);"></i>
+                    <span>Fatal / Fatality</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="injury-type">Primary Type of Injury *</label>
+                  <select id="injury-type" class="form-control" required>
+                    <option value="" disabled selected>Select injury class...</option>
+                    <option value="Laceration/Cut">Laceration / Cut</option>
+                    <option value="Burn/Chemical">Burn / Chemical Contact</option>
+                    <option value="Fracture/Sprain">Fracture / Severe Sprain</option>
+                    <option value="Contusion/Bruise">Contusion / Bruise</option>
+                    <option value="Inhalation/Respiratory">Inhalation / Respiratory Risk</option>
+                    <option value="Eye Injury">Eye Injury</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="injury-lostdays">Work Days Lost (Estimated)</label>
+                  <input type="number" id="injury-lostdays" class="form-control" value="0" min="0">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="injury-description">Description of How Incident Occurred *</label>
+                <textarea id="injury-description" class="form-control" rows="4" placeholder="Detail the events leading up to the injury. What was the employee doing? What went wrong?" required></textarea>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="injury-treatment">First Aid Administered?</label>
+                  <select id="injury-treatment" class="form-control">
+                    <option value="yes">Yes (on-site safety team)</option>
+                    <option value="no">No (self-treated)</option>
+                    <option value="hospital">No, required immediate ER / Hospitalization</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="injury-witness">Witnesses (Name / Contact)</label>
+                  <input type="text" id="injury-witness" class="form-control" placeholder="E.g., Jane Doe (Ext 405)">
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 32px;">
+                <button type="button" class="btn btn-outline" onclick="navigateTo('dashboard')">Cancel</button>
+                <button type="submit" class="btn btn-primary">
+                  <i class="fa-solid fa-briefcase-medical"></i> Submit Incident Form
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. TOOL SAFETY & LOTO VIEW -->
+      <section id="view-tool-safety" class="page-view">
+        <div style="display: grid; grid-template-columns: 3fr 2fr; gap: 32px; align-items: start;">
+          <!-- Left Column: Tool registry grid -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title"><i class="fa-solid fa-screwdriver-wrench"></i> Equipment & Machinery Registry</h3>
+                <p class="card-subtitle">Real-time status of critical workplace tools. Green is Safe, Red requires Lockout/Tagout.</p>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;" id="tool-registry-grid">
+              <!-- Dynamically populated by app.js -->
+            </div>
+          </div>
+
+          <!-- Right Column: Report Tool Issue Form -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> Flag Tool Issue</h3>
+                <p class="card-subtitle">Report defects, calibration failures, or physical damage</p>
+              </div>
+            </div>
+
+            <form id="tool-issue-form">
+              <div class="form-group">
+                <label for="tool-select">Select Equipment *</label>
+                <select id="tool-select" class="form-control" required>
+                  <!-- Populated by app.js -->
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="tool-issue-title">Issue Summary *</label>
+                <input type="text" id="tool-issue-title" class="form-control" placeholder="E.g., Blade alignment guides loose, safety sensor failed" required>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="tool-priority">Priority *</label>
+                  <select id="tool-priority" class="form-control" required>
+                    <option value="low">Low Priority</option>
+                    <option value="medium" selected>Medium Priority</option>
+                    <option value="high">High Priority</option>
+                  </select>
+                </div>
+                <div class="form-group" style="display: flex; flex-direction: column; justify-content: center; padding-top: 14px;">
+                  <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;">
+                    <input type="checkbox" id="tool-loto" style="width: 18px; height: 18px; accent-color: var(--danger);">
+                    <span style="font-weight: 600; color: var(--danger);">Trigger LOTO Tagout</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="tool-issue-desc">Fault Description & Behavior *</label>
+                <textarea id="tool-issue-desc" class="form-control" rows="3" placeholder="Describe the fault. What actions trigger the defect?" required></textarea>
+              </div>
+
+              <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 24px;">
+                <button type="submit" class="btn btn-danger" style="width: 100%;">
+                  <i class="fa-solid fa-lock"></i> File Issue & Apply Tag
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Bottom Row: Active Issues Logs -->
+        <div class="card" style="margin-top: 32px;">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title"><i class="fa-solid fa-list-check"></i> Tool Repair & Maintenance Logs</h3>
+              <p class="card-subtitle">Active maintenance states and resolution updates</p>
+            </div>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>LOTO</th>
+                  <th>Tool ID / Name</th>
+                  <th>Issue Summary</th>
+                  <th>Priority</th>
+                  <th>Date Filed</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tool-logs-table-body">
+                <!-- Dynamically populated by app.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. MEDIA GALLERY VIEW -->
+      <section id="view-media-gallery" class="page-view">
+        <div class="admin-toolbar">
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <button class="btn btn-outline active" id="btn-media-filter-all">All Media</button>
+            <button class="btn btn-outline" id="btn-media-filter-photo">Photos Only</button>
+            <button class="btn btn-outline" id="btn-media-filter-video">Videos Only</button>
+          </div>
+
+          <!-- Quick Upload Trigger -->
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <input type="file" id="direct-media-upload" accept="image/*,video/*" style="display: none;">
+            <button class="btn btn-primary" onclick="document.getElementById('direct-media-upload').click()">
+              <i class="fa-solid fa-cloud-arrow-up"></i> Upload Photo / Video
+            </button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;" id="media-grid-container">
+          <!-- Dynamically populated by app.js -->
+        </div>
+      </section>
+
+      <!-- 6. INCIDENT LOGS / ADMIN TABLE VIEW -->
+      <section id="view-admin-logs" class="page-view">
+        <div class="admin-toolbar">
+          <div class="search-wrapper">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="log-search" class="form-control" placeholder="Search by title, location, reporter, description...">
+          </div>
+          
+          <div class="filter-wrapper">
+            <select id="filter-type" class="form-control" style="width: auto;">
+              <option value="all">All Types (Hazards, Near Misses & Injuries)</option>
+              <option value="hazard">Hazards / Near Misses</option>
+              <option value="injury">Injuries Only</option>
+            </select>
+
+            <select id="filter-severity" class="form-control" style="width: auto;">
+              <option value="all">All Severities</option>
+              <option value="low">Low Risk / First Aid</option>
+              <option value="medium">Medium Risk</option>
+              <option value="high">High Risk / LTI</option>
+              <option value="critical">Critical / Fatality</option>
+            </select>
+
+            <select id="filter-status" class="form-control" style="width: auto;">
+              <option value="all">All Statuses</option>
+              <option value="Reported">Reported</option>
+              <option value="Under Review">Under Review</option>
+              <option value="Action Taken">Action Taken</option>
+              <option value="Resolved">Resolved</option>
+            </select>
+
+            <button class="btn btn-outline" id="export-logs-btn">
+              <i class="fa-solid fa-download"></i> Export CSV
+            </button>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Incident Details</th>
+                <th>Location</th>
+                <th>Date / Time</th>
+                <th>Severity</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="logs-table-body">
+              <!-- Dynamically populated by app.js -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 7. ANALYTICS VIEW -->
+      <section id="view-analytics" class="page-view">
+        <div class="charts-grid" style="margin-bottom: 32px;">
+          <!-- Chart 1: Hazards by Category -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title"><i class="fa-solid fa-bolt"></i> Incidents by Classification</h3>
+                <p class="card-subtitle">Distribution of reported hazard types and near misses</p>
+              </div>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="hazardCategoryChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 2: Incidents by Severity -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> Report Severity Breakdown</h3>
+                <p class="card-subtitle">Relative proportion of risk levels across all logs</p>
+              </div>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="severityBreakdownChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="charts-grid">
+          <!-- Chart 3: Injury Types -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title"><i class="fa-solid fa-kit-medical"></i> Injury Classification Details</h3>
+                <p class="card-subtitle">Breakdown of recorded body/health injury types</p>
+              </div>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="injuryTypeChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 4: Hotspot Locations -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title"><i class="fa-solid fa-map-location-dot"></i> Site Hotspots</h3>
+                <p class="card-subtitle">Count of hazardous incidents by area/sector</p>
+              </div>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="hotspotLocationsChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 8. COMPANY DATA HUB VIEW -->
+      <section id="view-data-hub" class="page-view">
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-info">
+              <span class="metric-label">Consolidated Database Size</span>
+              <span class="metric-value" id="hub-metric-total-records">0</span>
+              <span class="metric-trend trend-up">Tally of all logged reports</span>
+            </div>
+            <div class="metric-icon blue"><i class="fa-solid fa-database"></i></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-info">
+              <span class="metric-label">Faulty Tools Flagged</span>
+              <span class="metric-value" id="hub-metric-faulty-tools">0</span>
+              <span class="metric-trend trend-down">Active repair requests</span>
+            </div>
+            <div class="metric-icon orange"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-info">
+              <span class="metric-label">Safety Media Assets</span>
+              <span class="metric-value" id="hub-metric-media-count">0</span>
+              <span class="metric-trend trend-up">Incident attachments</span>
+            </div>
+            <div class="metric-icon green"><i class="fa-solid fa-images"></i></div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; margin-top: 32px;">
+          <!-- Backup and download board -->
+          <div class="card" style="height: 100%;">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title"><i class="fa-solid fa-download"></i> System Backups & Cloud Syncing</h3>
+                <p class="card-subtitle">Download master tables or sync datasets to secure company endpoints</p>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+              <div>
+                <h4 style="font-size:14px; font-weight:600; margin-bottom:8px;">1. Local Data Extracts</h4>
+                <div style="display: flex; gap: 12px;">
+                  <button class="btn btn-outline" id="hub-export-csv" style="flex:1;">
+                    <i class="fa-solid fa-file-csv" style="color: var(--primary);"></i> Download Unified CSV
+                  </button>
+                  <button class="btn btn-outline" id="hub-export-json" style="flex:1;">
+                    <i class="fa-solid fa-file-code" style="color: var(--warning);"></i> Export JSON Backup
+                  </button>
+                </div>
+              </div>
+
+              <div style="border-top:1px solid var(--border-color); padding-top: 20px;">
+                <h4 style="font-size:14px; font-weight:600; margin-bottom:8px;">2. Cloud Synchronization</h4>
+                <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
+                  <span id="sync-status-pill" class="badge" style="background-color: var(--success-glow); color: var(--success);">
+                    ● DATABASE SYNCED
+                  </span>
+                  <span style="font-size:12px; color: var(--text-muted);" id="sync-last-time">Last cloud sync: Just now</span>
+                </div>
+                <button class="btn btn-primary" id="hub-sync-btn" style="width: 100%; justify-content: center;">
+                  <i class="fa-solid fa-cloud-arrow-up"></i> Push Master Backup Sync
+                </button>
+                
+                <!-- Progress Bar Simulation -->
+                <div id="sync-progress-container" style="display: none; margin-top: 16px;">
+                  <div style="display: flex; justify-content: space-between; font-size:12px; margin-bottom:6px;">
+                    <span id="sync-progress-text">Uploading records to SafeSpace Cloud...</span>
+                    <span id="sync-progress-percent">0%</span>
+                  </div>
+                  <div style="width:100%; height: 8px; background-color: rgba(255,255,255,0.05); border-radius:4px; overflow:hidden;">
+                    <div id="sync-progress-bar" style="width: 0%; height:100%; background: linear-gradient(to right, var(--primary), #ec4899); border-radius:4px; transition: width 0.1s ease;"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Database Administration (Admin Only) -->
+              <div style="border-top:1px solid var(--border-color); padding-top: 20px;" id="hub-admin-actions-box">
+                <h4 style="font-size:14px; font-weight:600; color: var(--danger); margin-bottom:8px;">3. Danger Zone (Administrator Only)</h4>
+                <p style="font-size:12px; color: var(--text-muted); margin-bottom:12px;">Resetting the database returns all values to factory mock presets. All local records will be deleted.</p>
+                <button class="btn btn-outline" id="hub-reset-db-btn" style="border-color: rgba(239, 68, 68, 0.4); color: var(--danger); width: 100%; justify-content: center;">
+                  <i class="fa-solid fa-trash-can"></i> Factory Reset Portal Database
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Real-time Activity Logs (Collects all events in the app) -->
+          <div class="card" style="height: 100%;">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> SafeSpace System Activity Logs</h3>
+                <p class="card-subtitle">Tallying and tracking all safety events and user activity</p>
+              </div>
+            </div>
+            <div class="activity-feed" id="data-hub-activity-logs" style="max-height: 380px;">
+              <!-- Populated by app.js -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- DETAILS & STATUS MANAGEMENT MODAL OVERLAY -->
+  <div class="modal-overlay" id="detail-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-title-text">Report Details</h3>
+        <button class="modal-close" id="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="detail-label">Report ID</span>
+            <span class="detail-value" id="modal-detail-id">-</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Report Type</span>
+            <span class="detail-value" id="modal-detail-type">-</span>
+          </div>
+          
+          <div class="detail-item">
+            <span class="detail-label">Location</span>
+            <span class="detail-value" id="modal-detail-location">-</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Date & Time</span>
+            <span class="detail-value" id="modal-detail-date">-</span>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">Severity Level</span>
+            <span id="modal-detail-severity">-</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Reporter Name / ID</span>
+            <span class="detail-value" id="modal-detail-reporter">Alex Carter</span>
+          </div>
+
+          <div class="detail-item full-width">
+            <span class="detail-label" id="modal-label-description">Description of Hazard</span>
+            <p class="detail-value" id="modal-detail-description" style="line-height: 1.5; white-space: pre-wrap; font-weight: normal; margin-top: 4px;"></p>
+          </div>
+
+          <div class="detail-item full-width" id="modal-mitigation-group">
+            <span class="detail-label">Mitigation / Initial Actions Taken</span>
+            <p class="detail-value" id="modal-detail-mitigation" style="line-height: 1.5; white-space: pre-wrap; font-weight: normal; margin-top: 4px;"></p>
+          </div>
+
+          <!-- Attachment Display inside Details Modal -->
+          <div class="detail-item full-width" id="modal-attachment-group" style="display: none;">
+            <span class="detail-label">Evidence / Photo Log</span>
+            <div id="modal-detail-attachment" style="margin-top: 8px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); max-height: 250px; background-color: black; display: flex; align-items: center; justify-content: center;">
+              <!-- image/video preview injected here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Resolution Workflow Control (Company Admin Actions) -->
+        <div class="status-timeline">
+          <h4 class="timeline-title">Mitigation & Resolution workflow</h4>
+          <div class="timeline-steps">
+            <div class="timeline-step" id="timeline-step-reported">
+              <div class="step-node"><i class="fa-solid fa-flag"></i></div>
+              <span class="step-label">Reported</span>
+            </div>
+            <div class="timeline-step" id="timeline-step-review">
+              <div class="step-node"><i class="fa-solid fa-magnifying-glass"></i></div>
+              <span class="step-label">Reviewing</span>
+            </div>
+            <div class="timeline-step" id="timeline-step-action">
+              <div class="step-node"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+              <span class="step-label">Action Taken</span>
+            </div>
+            <div class="timeline-step" id="timeline-step-resolved">
+              <div class="step-node"><i class="fa-solid fa-check"></i></div>
+              <span class="step-label">Resolved</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin status override picker -->
+        <div style="margin-top: 32px; border-top: 1px solid var(--border-color); padding-top: 24px;" id="modal-admin-actions-block">
+          <h4 style="font-size: 14px; font-weight:600; margin-bottom: 12px;">Admin Management Actions</h4>
+          <div style="display: flex; gap: 12px; align-items: flex-end;">
+            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+              <label for="modal-admin-status-select">Change Status Status</label>
+              <select id="modal-admin-status-select" class="form-control">
+                <option value="Reported">Reported (New)</option>
+                <option value="Under Review">Under Review (Investigating)</option>
+                <option value="Action Taken">Action Taken (Interim Safety Active)</option>
+                <option value="Resolved">Resolved (Safe to Work)</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" id="modal-update-status-btn" style="height: 45px;">Update Status</button>
+          </div>
+        </div>
+
+        <!-- Warning block shown to Site Engineers in the details view -->
+        <div style="margin-top: 32px; border-top: 1px solid var(--border-color); padding-top: 24px; display: none;" id="modal-engineer-warning-block">
+          <div class="alert-pill" style="width:100%; border-radius:8px; justify-content:center; padding:10px; font-weight:500;">
+            <i class="fa-solid fa-lock"></i> Administration status controls locked. Administrator clearance required.
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- LIGHTBOX / FULLSCREEN MEDIA MODAL -->
+  <div class="modal-overlay" id="lightbox-modal">
+    <div class="modal-content" style="max-width: 800px; background-color: transparent; border: none; box-shadow: none;">
+      <div style="text-align: right; margin-bottom: 10px;">
+        <button id="lightbox-close-btn" style="background: rgba(0,0,0,0.5); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 24px; cursor: pointer;">&times;</button>
+      </div>
+      <div id="lightbox-content" style="background-color: black; border-radius: 12px; overflow: hidden; max-height: 80vh; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color);">
+        <!-- Injected Media -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- App Core JavaScript Scripts -->
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Application logic -->
+  <script src="app.js"></script>
+</body>
+</html>
